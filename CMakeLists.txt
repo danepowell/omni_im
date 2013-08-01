@@ -20,7 +20,7 @@ catkin_package(
 #############
 
 install(PROGRAMS
-  scripts/omni_simple_marker.py
+  scripts/omni_marker.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 

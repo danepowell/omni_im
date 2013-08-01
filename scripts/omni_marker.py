@@ -60,13 +60,13 @@ def callback(joint_state):
     server.applyChanges()
 
 if __name__=="__main__":
-    rospy.init_node("omni_simple_marker")
+    rospy.init_node("omni_marker")
 
     listener = tf.TransformListener()
 
     rospy.Subscriber("omni1_joint_states", JointState, callback)
     # create an interactive marker server on the topic namespace simple_marker
-    server = InteractiveMarkerServer("omni_simple_marker")
+    server = InteractiveMarkerServer("omni_marker")
 
     # create an interactive marker for our server
     int_marker = InteractiveMarker()
