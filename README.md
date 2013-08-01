@@ -7,4 +7,3 @@ This provides interactive marker server nodes, based on those in the interactive
 
 This is mostly a proof-of-concept package that you would need to adapt for use with an actual robot. Basically, you'd want to copy the callback function into your own project's existing interactive marker server node, and modify it to send feedback to an arbitrary marker, rather than just "my_marker". (Maybe this can be pulled out into a separate package, so you don't even have to modify your existing server? Doubtful, but maybe...)
 
-Note that the cpp file is old and doesn't really do anything. Only the py node works.
