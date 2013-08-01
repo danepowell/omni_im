@@ -35,15 +35,33 @@ from geometry_msgs.msg import PoseStamped, Pose
 from sensor_msgs.msg import JointState
 import tf
 from interactive_markers.interactive_marker_server import *
+from interactive_markers.menu_handler import *
 
+omni_control = False
 listener = None
+server = None
+menu_handler = MenuHandler()
 
 def processFeedback(feedback):
-    p = feedback.pose.position
-    print feedback.marker_name + " is now at " + str(p.x) + ", " + str(p.y) + ", " + str(p.z)
+    global omni_control
+    if feedback.event_type == InteractiveMarkerFeedback.MENU_SELECT:
+        handle = feedback.menu_entry_id
+        state = menu_handler.getCheckState(handle)
+        if state == MenuHandler.CHECKED:
+            menu_handler.setCheckState(handle, MenuHandler.UNCHECKED)
+            omni_control = False
+        else:
+            menu_handler.setCheckState( handle, MenuHandler.CHECKED )
+            omni_control = True
+            print server.get("my_marker").controls
+        menu_handler.reApply(server)
+    server.applyChanges()
 
-def callback(joint_state):
-    (trans, rot) = listener.lookupTransform ('/base', '/stylus', rospy.Time(0));
+# Gets called whenever omni position (joint state) changes
+def omni_callback(joint_state):
+    global omni_control
+    listener.waitForTransform('/base', '/stylus', rospy.Time(0), rospy.Duration(1.0))
+    (trans, rot) = listener.lookupTransform ('/base', '/stylus', rospy.Time(0))
     p = Pose()
     p.position.x = trans[0]
     p.position.y = trans[1]
@@ -56,17 +74,22 @@ def callback(joint_state):
     feedback.pose = p
     feedback.marker_name = "my_marker"
     feedback.event_type = feedback.POSE_UPDATE
-    server.processFeedback(feedback)
-    server.applyChanges()
+    feedback.client_id = "/rviz/"
+    if omni_control:
+        server.processFeedback(feedback)
+        server.applyChanges()
 
 if __name__=="__main__":
     rospy.init_node("omni_marker")
 
     listener = tf.TransformListener()
 
-    rospy.Subscriber("omni1_joint_states", JointState, callback)
+    rospy.Subscriber("omni1_joint_states", JointState, omni_callback)
     # create an interactive marker server on the topic namespace simple_marker
     server = InteractiveMarkerServer("omni_marker")
+
+    entry = menu_handler.insert("Omni control", callback=processFeedback)
+    menu_handler.setCheckState(entry, MenuHandler.UNCHECKED)
 
     # create an interactive marker for our server
     int_marker = InteractiveMarker()
@@ -90,23 +113,29 @@ if __name__=="__main__":
     box_control = InteractiveMarkerControl()
     box_control.always_visible = True
     box_control.markers.append( box_marker )
-
     # add the control to the interactive marker
     int_marker.controls.append( box_control )
 
     # create a control which will move the box
-    # this control does not contain any markers,
-    # which will cause RViz to insert two arrows
+    # this control does not contain any markers,  
+  # which will cause RViz to insert two arrows
     rotate_control = InteractiveMarkerControl()
     rotate_control.name = "move_x"
     rotate_control.interaction_mode = InteractiveMarkerControl.MOVE_AXIS
-
     # add the control to the interactive marker
-    int_marker.controls.append(rotate_control);
+    int_marker.controls.append(rotate_control)
+
+    menu_control = InteractiveMarkerControl()
+    menu_control.name = "menu_only_control"
+    menu_control.interaction_mode = InteractiveMarkerControl.BUTTON
+    menu_control.always_visible = True;
+    int_marker.controls.append(menu_control)
 
     # add the interactive marker to our collection &
     # tell the server to call processFeedback() when feedback arrives for it
     server.insert(int_marker, processFeedback)
+
+    menu_handler.apply(server, int_marker.name)
 
     # 'commit' changes and send to all clients
     server.applyChanges()
