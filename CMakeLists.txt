@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(omni_im)
 
-find_package(catkin REQUIRED COMPONENTS interactive_markers visualization_msgs tf)
+find_package(catkin REQUIRED COMPONENTS)
 
 ###################################
 ## catkin specific configuration ##
