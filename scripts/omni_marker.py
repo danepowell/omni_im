@@ -53,7 +53,7 @@ def processFeedback(feedback):
         else:
             menu_handler.setCheckState( handle, MenuHandler.CHECKED )
             omni_control = True
-            print server.get("my_marker").controls
+            print server.get("omni_marker").controls
         menu_handler.reApply(server)
     server.applyChanges()
 
@@ -72,7 +72,7 @@ def omni_callback(joint_state):
     p.orientation.w = rot[3]
     feedback = InteractiveMarkerFeedback()
     feedback.pose = p
-    feedback.marker_name = "my_marker"
+    feedback.marker_name = "omni_marker"
     feedback.event_type = feedback.POSE_UPDATE
     feedback.client_id = "/rviz/"
     if omni_control:
@@ -94,7 +94,7 @@ if __name__=="__main__":
     # create an interactive marker for our server
     int_marker = InteractiveMarker()
     int_marker.header.frame_id = "/base"
-    int_marker.name = "my_marker"
+    int_marker.name = "omni_marker"
     int_marker.description = "Simple 1-DOF Control"
     int_marker.scale = 0.1
 
