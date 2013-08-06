@@ -1,4 +1,4 @@
 <launch>
-  <include file="$(find phantom_omni)/omni.launch" />
+  <include file="$(find phantom_omni)/launch/omni.launch" />
   <node name="omni_marker_1" pkg="omni_im" type="omni_marker.py" required="true" />
 </launch>
