@@ -42,13 +42,10 @@ listener = None
 br = None
 server = None
 menu_handler = MenuHandler()
-omni_trans = (0, 0, 0)
-omni_rot = tf.transformations.quaternion_from_euler(0, 0, 0)
-marker_trans = omni_trans
-marker_rot = omni_rot
+feedback_client_id = '/rviz/InteractiveMarkers'
 
 def processFeedback(feedback):
-    global omni_control, omni_trans, omni_rot, marker_trans, marker_rot
+    global omni_control, omni_trans, omni_rot, marker_trans, marker_rot, feedback_client_id
     if feedback.event_type == InteractiveMarkerFeedback.MENU_SELECT:
         handle = feedback.menu_entry_id
         state = menu_handler.getCheckState(handle)
@@ -60,7 +57,6 @@ def processFeedback(feedback):
             omni_control = True
             (omni_trans, omni_rot) = listener.lookupTransform('/stylus', '/marker', rospy.Time(0))
             br.sendTransform(omni_trans, omni_rot, rospy.Time.now(), "/proxy", "/stylus")            
-            rospy.loginfo(server.get("omni_marker").controls)
         menu_handler.reApply(server)
     elif feedback.event_type == InteractiveMarkerFeedback.POSE_UPDATE:
         p = feedback.pose
@@ -68,11 +64,13 @@ def processFeedback(feedback):
         po = p.orientation
         marker_trans = (pp.x, pp.y, pp.z)
         marker_rot = (po.x, po.y, po.z, po.w)
+    if feedback.client_id != feedback_client_id:
+        rospy.logwarn('Different client_id! This could cause feedback to be ignored. i.e., break EVERYTHING.')
     server.applyChanges()
 
 # Gets called whenever omni position (joint state) changes
 def omni_callback(joint_state):
-    global omni_control, omni_trans, omni_rot
+    global omni_control, omni_trans, omni_rot, feedback_client_id
 
     br.sendTransform(omni_trans, omni_rot, rospy.Time.now(), "/proxy", "/stylus")            
 
@@ -90,7 +88,7 @@ def omni_callback(joint_state):
         feedback.pose = p
         feedback.marker_name = "omni_marker"
         feedback.event_type = feedback.POSE_UPDATE
-        feedback.client_id = "/rviz/InteractiveMarkers"
+        feedback.client_id = feedback_client_id
         if omni_control:
             server.processFeedback(feedback)
             server.applyChanges()
@@ -104,6 +102,11 @@ if __name__=="__main__":
 
     listener = tf.TransformListener()
     br = tf.TransformBroadcaster()
+
+    omni_trans = (0, 0, 0)
+    omni_rot = tf.transformations.quaternion_from_euler(0, 0, 0)
+    marker_trans = omni_trans
+    marker_rot = omni_rot
 
     rospy.Subscriber("omni1_joint_states", JointState, omni_callback)
     # create an interactive marker server on the topic namespace simple_marker
