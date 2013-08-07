@@ -7,6 +7,7 @@ from sensor_msgs.msg import JointState
 import tf
 from interactive_markers.interactive_marker_server import *
 from interactive_markers.menu_handler import *
+import tf_conversions.posemath as pm
 
 omni_control = False
 listener = None
@@ -37,18 +38,16 @@ def processMenuFeedback(feedback):
 
 # Marker moved - just save its new pose
 def processMarkerFeedback(feedback):
-    global marker_trans, marker_rot, feedback_client_id
+    global marker_tf, feedback_client_id
     if feedback.event_type == InteractiveMarkerFeedback.POSE_UPDATE:
-        p = feedback.pose
-        pp = p.position
-        po = p.orientation
-        marker_trans = (pp.x, pp.y, pp.z)
-        marker_rot = (po.x, po.y, po.z, po.w)
+        marker_tf = pm.toTf(pm.fromMsg(feedback.pose))
     if feedback.client_id != feedback_client_id:
         rospy.logwarn('Different client_id! This could cause feedback to be ignored. i.e., break EVERYTHING.')
     server.applyChanges()
 
 # Gets called whenever omni position (joint state) changes
+# The idea here is that we publish the omni position to the omni_marker feedback topic,
+# but only if 'omni_control' is currently selected.
 def omni_callback(joint_state):
     global omni_control, omni_trans, omni_rot, feedback_client_id, feedback_pub
 
@@ -56,26 +55,23 @@ def omni_callback(joint_state):
 
     if omni_control:
         try:
-            (trans, rot) = listener.lookupTransform ('/base', '/proxy', rospy.Time(0))
-            p = Pose()
-            p.position.x = trans[0]
-            p.position.y = trans[1]
-            p.position.z = trans[2]
-            p.orientation.x = rot[0]
-            p.orientation.y = rot[1]
-            p.orientation.z = rot[2]
-            p.orientation.w = rot[3]
+            # Get pose corresponding to transform between base and proxy.
+            p = pm.toMsg(pm.fromTf(listener.lookupTransform ('/base', '/proxy', rospy.Time(0))))
+
+            # Construct feedback message.
             feedback = InteractiveMarkerFeedback()
             feedback.pose = p
             feedback.marker_name = "omni_marker"
             feedback.event_type = feedback.POSE_UPDATE
             feedback.client_id = feedback_client_id
+
+            # Publish feedback.
             feedback_pub.publish(feedback)
         except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException):
             rospy.logerr("Couldn't look up transform. These things happen...")
 
 if __name__=="__main__":
-    global omni_trans, omni_rot, marker_trans, marker_rot
+    global omni_trans, omni_rot, marker_tf
 
     rospy.init_node("omni_marker")
 
@@ -84,8 +80,7 @@ if __name__=="__main__":
 
     omni_trans = (0, 0, 0)
     omni_rot = tf.transformations.quaternion_from_euler(0, 0, 0)
-    marker_trans = omni_trans
-    marker_rot = omni_rot
+    marker_tf = (omni_trans, omni_rot)
 
     rospy.Subscriber("omni1_joint_states", JointState, omni_callback)
     # create an interactive marker server on the topic namespace omni_marker
@@ -143,5 +138,5 @@ if __name__=="__main__":
     
     rate = rospy.Rate(10.0)
     while not rospy.is_shutdown():
-        br.sendTransform(marker_trans, marker_rot, rospy.Time.now(), "/marker", "/base")
+        br.sendTransform(marker_tf[0], marker_tf[1], rospy.Time.now(), "/marker", "/base")
         rate.sleep()
