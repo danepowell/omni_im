@@ -74,7 +74,7 @@ def omni_callback(joint_state):
     feedback.pose = p
     feedback.marker_name = "omni_marker"
     feedback.event_type = feedback.POSE_UPDATE
-    feedback.client_id = "/rviz/"
+    feedback.client_id = "/rviz/InteractiveMarkers"
     if omni_control:
         server.processFeedback(feedback)
         server.applyChanges()
