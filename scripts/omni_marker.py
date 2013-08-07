@@ -39,11 +39,16 @@ from interactive_markers.menu_handler import *
 
 omni_control = False
 listener = None
+br = None
 server = None
 menu_handler = MenuHandler()
+omni_trans = (0, 0, 0)
+omni_rot = tf.transformations.quaternion_from_euler(0, 0, 0)
+marker_trans = omni_trans
+marker_rot = omni_rot
 
 def processFeedback(feedback):
-    global omni_control
+    global omni_control, omni_trans, omni_rot, marker_trans, marker_rot
     if feedback.event_type == InteractiveMarkerFeedback.MENU_SELECT:
         handle = feedback.menu_entry_id
         state = menu_handler.getCheckState(handle)
@@ -53,36 +58,52 @@ def processFeedback(feedback):
         else:
             menu_handler.setCheckState( handle, MenuHandler.CHECKED )
             omni_control = True
-            print server.get("omni_marker").controls
+            (omni_trans, omni_rot) = listener.lookupTransform('/stylus', '/marker', rospy.Time(0))
+            br.sendTransform(omni_trans, omni_rot, rospy.Time.now(), "/proxy", "/stylus")            
+            rospy.loginfo(server.get("omni_marker").controls)
         menu_handler.reApply(server)
+    elif feedback.event_type == InteractiveMarkerFeedback.POSE_UPDATE:
+        p = feedback.pose
+        pp = p.position
+        po = p.orientation
+        marker_trans = (pp.x, pp.y, pp.z)
+        marker_rot = (po.x, po.y, po.z, po.w)
     server.applyChanges()
 
 # Gets called whenever omni position (joint state) changes
 def omni_callback(joint_state):
-    global omni_control
-    listener.waitForTransform('/base', '/stylus', rospy.Time(0), rospy.Duration(1.0))
-    (trans, rot) = listener.lookupTransform ('/base', '/stylus', rospy.Time(0))
-    p = Pose()
-    p.position.x = trans[0]
-    p.position.y = trans[1]
-    p.position.z = trans[2]
-    p.orientation.x = rot[0]
-    p.orientation.y = rot[1]
-    p.orientation.z = rot[2]
-    p.orientation.w = rot[3]
-    feedback = InteractiveMarkerFeedback()
-    feedback.pose = p
-    feedback.marker_name = "omni_marker"
-    feedback.event_type = feedback.POSE_UPDATE
-    feedback.client_id = "/rviz/InteractiveMarkers"
-    if omni_control:
-        server.processFeedback(feedback)
-        server.applyChanges()
+    global omni_control, omni_trans, omni_rot
+
+    br.sendTransform(omni_trans, omni_rot, rospy.Time.now(), "/proxy", "/stylus")            
+
+    try:
+        (trans, rot) = listener.lookupTransform ('/base', '/proxy', rospy.Time(0))
+        p = Pose()
+        p.position.x = trans[0]
+        p.position.y = trans[1]
+        p.position.z = trans[2]
+        p.orientation.x = rot[0]
+        p.orientation.y = rot[1]
+        p.orientation.z = rot[2]
+        p.orientation.w = rot[3]
+        feedback = InteractiveMarkerFeedback()
+        feedback.pose = p
+        feedback.marker_name = "omni_marker"
+        feedback.event_type = feedback.POSE_UPDATE
+        feedback.client_id = "/rviz/InteractiveMarkers"
+        if omni_control:
+            server.processFeedback(feedback)
+            server.applyChanges()
+    except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException):
+        rospy.logerr("Couldn't look up transform. These things happen...")
 
 if __name__=="__main__":
+    global omni_trans, omni_rot, marker_trans, marker_rot
+
     rospy.init_node("omni_marker")
 
     listener = tf.TransformListener()
+    br = tf.TransformBroadcaster()
 
     rospy.Subscriber("omni1_joint_states", JointState, omni_callback)
     # create an interactive marker server on the topic namespace simple_marker
@@ -139,5 +160,8 @@ if __name__=="__main__":
 
     # 'commit' changes and send to all clients
     server.applyChanges()
-
-    rospy.spin()
+    
+    rate = rospy.Rate(10.0)
+    while not rospy.is_shutdown():
+        br.sendTransform(marker_trans, marker_rot, rospy.Time.now(), "/marker", "/base")
+        rate.sleep()
