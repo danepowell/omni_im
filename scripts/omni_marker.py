@@ -19,7 +19,7 @@ feedback_pub = rospy.Publisher('omni_marker/feedback', InteractiveMarkerFeedback
 
 # User clicked on menu entry, i.e. 'Omni Control'
 def processMenuFeedback(feedback):
-    global omni_control, omni_trans, omni_rot, feedback_client_id
+    global omni_control, omni_tf, feedback_client_id
     if feedback.event_type == InteractiveMarkerFeedback.MENU_SELECT:
         handle = feedback.menu_entry_id
         state = menu_handler.getCheckState(handle)
@@ -29,8 +29,8 @@ def processMenuFeedback(feedback):
         else:
             menu_handler.setCheckState( handle, MenuHandler.CHECKED )
             omni_control = True
-            (omni_trans, omni_rot) = listener.lookupTransform('/stylus', '/marker', rospy.Time(0))
-            br.sendTransform(omni_trans, omni_rot, rospy.Time.now(), "/proxy", "/stylus")            
+            omni_tf = listener.lookupTransform('/stylus', '/marker', rospy.Time(0))
+            br.sendTransform(omni_tf[0], omni_tf[1], rospy.Time.now(), "/proxy", "/stylus")            
         menu_handler.reApply(server)
     if feedback.client_id != feedback_client_id:
         rospy.logwarn('Different client_id! This could cause feedback to be ignored. i.e., break EVERYTHING.')
@@ -49,9 +49,9 @@ def processMarkerFeedback(feedback):
 # The idea here is that we publish the omni position to the omni_marker feedback topic,
 # but only if 'omni_control' is currently selected.
 def omni_callback(joint_state):
-    global omni_control, omni_trans, omni_rot, feedback_client_id, feedback_pub
+    global omni_control, omni_tf, feedback_client_id, feedback_pub
 
-    br.sendTransform(omni_trans, omni_rot, rospy.Time.now(), "/proxy", "/stylus")            
+    br.sendTransform(omni_tf[0], omni_tf[1], rospy.Time.now(), "/proxy", "/stylus")            
 
     if omni_control:
         try:
@@ -71,16 +71,15 @@ def omni_callback(joint_state):
             rospy.logerr("Couldn't look up transform. These things happen...")
 
 if __name__=="__main__":
-    global omni_trans, omni_rot, marker_tf
+    global omni_tf, omni_tf, marker_tf
 
     rospy.init_node("omni_marker")
 
     listener = tf.TransformListener()
     br = tf.TransformBroadcaster()
-
-    omni_trans = (0, 0, 0)
-    omni_rot = tf.transformations.quaternion_from_euler(0, 0, 0)
-    marker_tf = (omni_trans, omni_rot)
+    
+    omni_tf = ((0, 0, 0), tf.transformations.quaternion_from_euler(0, 0, 0))
+    marker_tf = omni_tf
 
     rospy.Subscriber("omni1_joint_states", JointState, omni_callback)
     # create an interactive marker server on the topic namespace omni_marker
