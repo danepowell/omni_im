@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 
-import roslib; roslib.load_manifest("interactive_markers")
 import rospy
 from geometry_msgs.msg import Pose
 from sensor_msgs.msg import JointState
@@ -9,6 +8,7 @@ from interactive_markers.interactive_marker_server import *
 from interactive_markers.menu_handler import *
 import tf_conversions.posemath as pm
 
+# todo: get rid of all these globals- use classes instead
 omni_control = False
 listener = None
 br = None
@@ -27,7 +27,7 @@ def processMenuFeedback(feedback):
             menu_handler.setCheckState(handle, MenuHandler.UNCHECKED)
             omni_control = False
         else:
-            menu_handler.setCheckState( handle, MenuHandler.CHECKED )
+            menu_handler.setCheckState(handle, MenuHandler.CHECKED)
             omni_control = True
             omni_tf = listener.lookupTransform('/stylus', '/marker', rospy.Time(0))
             br.sendTransform(omni_tf[0], omni_tf[1], rospy.Time.now(), "/proxy", "/stylus")            
