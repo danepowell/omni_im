@@ -74,26 +74,27 @@ def omni_callback(joint_state):
 
     br.sendTransform(omni_trans, omni_rot, rospy.Time.now(), "/proxy", "/stylus")            
 
-    try:
-        (trans, rot) = listener.lookupTransform ('/base', '/proxy', rospy.Time(0))
-        p = Pose()
-        p.position.x = trans[0]
-        p.position.y = trans[1]
-        p.position.z = trans[2]
-        p.orientation.x = rot[0]
-        p.orientation.y = rot[1]
-        p.orientation.z = rot[2]
-        p.orientation.w = rot[3]
-        feedback = InteractiveMarkerFeedback()
-        feedback.pose = p
-        feedback.marker_name = "omni_marker"
-        feedback.event_type = feedback.POSE_UPDATE
-        feedback.client_id = feedback_client_id
-        if omni_control:
-            server.processFeedback(feedback)
-            server.applyChanges()
-    except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException):
-        rospy.logerr("Couldn't look up transform. These things happen...")
+    pub = rospy.Publisher('omni_marker/feedback', InteractiveMarkerFeedback)
+    
+    if omni_control:
+        try:
+            (trans, rot) = listener.lookupTransform ('/base', '/proxy', rospy.Time(0))
+            p = Pose()
+            p.position.x = trans[0]
+            p.position.y = trans[1]
+            p.position.z = trans[2]
+            p.orientation.x = rot[0]
+            p.orientation.y = rot[1]
+            p.orientation.z = rot[2]
+            p.orientation.w = rot[3]
+            feedback = InteractiveMarkerFeedback()
+            feedback.pose = p
+            feedback.marker_name = "omni_marker"
+            feedback.event_type = feedback.POSE_UPDATE
+            feedback.client_id = feedback_client_id
+            pub.publish(feedback)
+        except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException):
+            rospy.logerr("Couldn't look up transform. These things happen...")
 
 if __name__=="__main__":
     global omni_trans, omni_rot, marker_trans, marker_rot
