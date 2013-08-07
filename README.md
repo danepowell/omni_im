@@ -8,4 +8,4 @@ This provides interactive marker server nodes, based on those in the interactive
 This is mostly a proof-of-concept package that you would need to adapt for use with an actual robot. Basically, you'd want to copy the callback function into your own project's existing interactive marker server node, and modify it to send feedback to an arbitrary marker, rather than just "my_marker". (Maybe this can be pulled out into a separate package, so you don't even have to modify your existing server? Doubtful, but maybe...)
 
 To launch: roslaunch omni_im omni_im.launch
-Then add an interactive marker, and set the update topic to /omni_marker/update
+Then add an interactive marker, and set the update topic to /omni_im/update

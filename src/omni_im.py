@@ -15,7 +15,7 @@ br = None
 server = None
 menu_handler = MenuHandler()
 feedback_client_id = '/rviz/InteractiveMarkers'
-feedback_pub = rospy.Publisher('omni_marker/feedback', InteractiveMarkerFeedback)
+feedback_pub = rospy.Publisher('omni_im/feedback', InteractiveMarkerFeedback)
 
 # User clicked on menu entry, i.e. 'Omni Control'
 def processMenuFeedback(feedback):
@@ -46,7 +46,7 @@ def processMarkerFeedback(feedback):
     server.applyChanges()
 
 # Gets called whenever omni position (joint state) changes
-# The idea here is that we publish the omni position to the omni_marker feedback topic,
+# The idea here is that we publish the omni position to the omni_im feedback topic,
 # but only if 'omni_control' is currently selected.
 def omni_callback(joint_state):
     global omni_control, omni_tf, feedback_client_id, feedback_pub
@@ -61,7 +61,7 @@ def omni_callback(joint_state):
             # Construct feedback message.
             feedback = InteractiveMarkerFeedback()
             feedback.pose = p
-            feedback.marker_name = "omni_marker"
+            feedback.marker_name = "omni_im"
             feedback.event_type = feedback.POSE_UPDATE
             feedback.client_id = feedback_client_id
 
@@ -73,7 +73,7 @@ def omni_callback(joint_state):
 if __name__=="__main__":
     global omni_tf, omni_tf, marker_tf
 
-    rospy.init_node("omni_marker")
+    rospy.init_node("omni_im")
 
     listener = tf.TransformListener()
     br = tf.TransformBroadcaster()
@@ -82,8 +82,8 @@ if __name__=="__main__":
     marker_tf = omni_tf
 
     rospy.Subscriber("omni1_joint_states", JointState, omni_callback)
-    # create an interactive marker server on the topic namespace omni_marker
-    server = InteractiveMarkerServer("omni_marker")
+    # create an interactive marker server on the topic namespace omni_im
+    server = InteractiveMarkerServer("omni_im")
 
     entry = menu_handler.insert("Omni control", callback=processMenuFeedback)
     menu_handler.setCheckState(entry, MenuHandler.UNCHECKED)
@@ -91,7 +91,7 @@ if __name__=="__main__":
     # create an interactive marker for our server
     int_marker = InteractiveMarker()
     int_marker.header.frame_id = "/base"
-    int_marker.name = "omni_marker"
+    int_marker.name = "omni_im"
     int_marker.description = "Phantom Omni Control"
     int_marker.scale = 0.1
 

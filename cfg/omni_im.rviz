@@ -55,7 +55,7 @@ Visualization Manager:
       Show Axes: false
       Show Descriptions: true
       Show Visual Aids: false
-      Update Topic: /omni_marker/update
+      Update Topic: /omni_im/update
       Value: true
     - Class: rviz/TF
       Enabled: false
