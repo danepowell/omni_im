@@ -109,7 +109,7 @@ if __name__=="__main__":
     marker_rot = omni_rot
 
     rospy.Subscriber("omni1_joint_states", JointState, omni_callback)
-    # create an interactive marker server on the topic namespace simple_marker
+    # create an interactive marker server on the topic namespace omni_marker
     server = InteractiveMarkerServer("omni_marker")
 
     entry = menu_handler.insert("Omni control", callback=processFeedback)
@@ -119,7 +119,7 @@ if __name__=="__main__":
     int_marker = InteractiveMarker()
     int_marker.header.frame_id = "/base"
     int_marker.name = "omni_marker"
-    int_marker.description = "Simple 1-DOF Control"
+    int_marker.description = "Phantom Omni Control"
     int_marker.scale = 0.1
 
     # create a grey box marker
@@ -142,7 +142,7 @@ if __name__=="__main__":
 
     # create a control which will move the box
     # this control does not contain any markers,  
-  # which will cause RViz to insert two arrows
+    # which will cause RViz to insert two arrows
     rotate_control = InteractiveMarkerControl()
     rotate_control.name = "move_x"
     rotate_control.interaction_mode = InteractiveMarkerControl.MOVE_AXIS
