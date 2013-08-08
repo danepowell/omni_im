@@ -108,21 +108,65 @@ def makeMarker():
     box_marker.color.b = 0.5
     box_marker.color.a = 1.0
 
-    # create a non-interactive control which contains the box
-    box_control = InteractiveMarkerControl()
-    box_control.always_visible = True
-    box_control.markers.append( box_marker )
-    # add the control to the interactive marker
-    int_marker.controls.append( box_control )
+    control = InteractiveMarkerControl()
+    control.always_visible = True
+    control.interaction_mode = InteractiveMarkerControl.MOVE_ROTATE_3D
+    control.markers.append(box_marker)
+    int_marker.controls.append(control)
 
-    # create a control which will move the box
-    # this control does not contain any markers,  
-    # which will cause RViz to insert two arrows
-    rotate_control = InteractiveMarkerControl()
-    rotate_control.name = 'move_x'
-    rotate_control.interaction_mode = InteractiveMarkerControl.MOVE_AXIS
-    # add the control to the interactive marker
-    int_marker.controls.append(rotate_control)
+    control = InteractiveMarkerControl()
+    control.orientation.w = 1
+    control.orientation.x = 1
+    control.orientation.y = 0
+    control.orientation.z = 0
+    control.name = "rotate_x"
+    control.interaction_mode = InteractiveMarkerControl.ROTATE_AXIS
+    int_marker.controls.append(control)
+
+    control = InteractiveMarkerControl()
+    control.orientation.w = 1
+    control.orientation.x = 1
+    control.orientation.y = 0
+    control.orientation.z = 0
+    control.name = "move_x"
+    control.interaction_mode = InteractiveMarkerControl.MOVE_AXIS
+    int_marker.controls.append(control)
+
+    control = InteractiveMarkerControl()
+    control.orientation.w = 1
+    control.orientation.x = 0
+    control.orientation.y = 1
+    control.orientation.z = 0
+    control.name = "rotate_z"
+    control.interaction_mode = InteractiveMarkerControl.ROTATE_AXIS
+    int_marker.controls.append(control)
+
+    control = InteractiveMarkerControl()
+    control.orientation.w = 1
+    control.orientation.x = 0
+    control.orientation.y = 1
+    control.orientation.z = 0
+    control.name = "move_z"
+    control.interaction_mode = InteractiveMarkerControl.MOVE_AXIS
+    int_marker.controls.append(control)
+
+    control = InteractiveMarkerControl()
+    control.orientation.w = 1
+    control.orientation.x = 0
+    control.orientation.y = 0
+    control.orientation.z = 1
+    control.name = "rotate_y"
+    control.interaction_mode = InteractiveMarkerControl.ROTATE_AXIS
+    int_marker.controls.append(control)
+
+    control = InteractiveMarkerControl()
+    control.orientation.w = 1
+    control.orientation.x = 0
+    control.orientation.y = 0
+    control.orientation.z = 1
+    control.name = "move_y"
+    control.interaction_mode = InteractiveMarkerControl.MOVE_AXIS
+    int_marker.controls.append(control)
 
     menu_control = InteractiveMarkerControl()
     menu_control.name = 'menu_only_control'
@@ -132,7 +176,6 @@ def makeMarker():
 
     server.insert(int_marker, processMarkerFeedback)
     menu_handler.apply(server, int_marker.name)
-
 
 if __name__=='__main__':
     global marker_tf, zero_tf, marker_ref, stylus_ref
