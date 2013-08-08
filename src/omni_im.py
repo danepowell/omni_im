@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+ros#!/usr/bin/env python
 
 import rospy
 from geometry_msgs.msg import Pose
@@ -30,10 +30,10 @@ def processMenuFeedback(feedback):
             menu_handler.setCheckState(handle, MenuHandler.CHECKED)
             omni_control = True
             omni_tf = listener.lookupTransform('/stylus', '/marker', rospy.Time(0))
-            br.sendTransform(omni_tf[0], omni_tf[1], rospy.Time.now(), "/proxy", "/stylus")            
+            br.sendTransform(omni_tf[0], omni_tf[1], rospy.Time.now(), '/proxy', '/stylus')            
         menu_handler.reApply(server)
     if feedback.client_id != feedback_client_id:
-        rospy.logwarn('Different client_id! This could cause feedback to be ignored. i.e., break EVERYTHING.')
+        rospy.logwarn("Different client_id! This could cause feedback to be ignored. i.e., break EVERYTHING.")
     server.applyChanges()
 
 # Marker moved - just save its new pose
@@ -42,7 +42,7 @@ def processMarkerFeedback(feedback):
     if feedback.event_type == InteractiveMarkerFeedback.POSE_UPDATE:
         marker_tf = pm.toTf(pm.fromMsg(feedback.pose))
     if feedback.client_id != feedback_client_id:
-        rospy.logwarn('Different client_id! This could cause feedback to be ignored. i.e., break EVERYTHING.')
+        rospy.logwarn("Different client_id! This could cause feedback to be ignored. i.e., break EVERYTHING.")
     server.applyChanges()
 
 # Gets called whenever omni position (joint state) changes
@@ -51,7 +51,7 @@ def processMarkerFeedback(feedback):
 def omni_callback(joint_state):
     global omni_control, omni_tf, feedback_client_id, feedback_pub
 
-    br.sendTransform(omni_tf[0], omni_tf[1], rospy.Time.now(), "/proxy", "/stylus")            
+    br.sendTransform(omni_tf[0], omni_tf[1], rospy.Time.now(), '/proxy', '/stylus')            
 
     if omni_control:
         try:
@@ -61,7 +61,7 @@ def omni_callback(joint_state):
             # Construct feedback message.
             feedback = InteractiveMarkerFeedback()
             feedback.pose = p
-            feedback.marker_name = "omni_im"
+            feedback.marker_name = 'omni_im'
             feedback.event_type = feedback.POSE_UPDATE
             feedback.client_id = feedback_client_id
 
@@ -70,10 +70,10 @@ def omni_callback(joint_state):
         except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException):
             rospy.logerr("Couldn't look up transform. These things happen...")
 
-if __name__=="__main__":
+if __name__=='__main__':
     global omni_tf, omni_tf, marker_tf
 
-    rospy.init_node("omni_im")
+    rospy.init_node('omni_im')
 
     listener = tf.TransformListener()
     br = tf.TransformBroadcaster()
@@ -81,17 +81,17 @@ if __name__=="__main__":
     omni_tf = ((0, 0, 0), tf.transformations.quaternion_from_euler(0, 0, 0))
     marker_tf = omni_tf
 
-    rospy.Subscriber("omni1_joint_states", JointState, omni_callback)
+    rospy.Subscriber('omni1_joint_states', JointState, omni_callback)
     # create an interactive marker server on the topic namespace omni_im
-    server = InteractiveMarkerServer("omni_im")
+    server = InteractiveMarkerServer('omni_im')
 
     entry = menu_handler.insert("Omni control", callback=processMenuFeedback)
     menu_handler.setCheckState(entry, MenuHandler.UNCHECKED)
 
     # create an interactive marker for our server
     int_marker = InteractiveMarker()
-    int_marker.header.frame_id = "/base"
-    int_marker.name = "omni_im"
+    int_marker.header.frame_id = '/base'
+    int_marker.name = 'omni_im'
     int_marker.description = "Phantom Omni Control"
     int_marker.scale = 0.1
 
@@ -117,13 +117,13 @@ if __name__=="__main__":
     # this control does not contain any markers,  
     # which will cause RViz to insert two arrows
     rotate_control = InteractiveMarkerControl()
-    rotate_control.name = "move_x"
+    rotate_control.name = 'move_x'
     rotate_control.interaction_mode = InteractiveMarkerControl.MOVE_AXIS
     # add the control to the interactive marker
     int_marker.controls.append(rotate_control)
 
     menu_control = InteractiveMarkerControl()
-    menu_control.name = "menu_only_control"
+    menu_control.name = 'menu_only_control'
     menu_control.interaction_mode = InteractiveMarkerControl.BUTTON
     menu_control.always_visible = True;
     int_marker.controls.append(menu_control)
@@ -137,5 +137,5 @@ if __name__=="__main__":
     
     rate = rospy.Rate(10.0)
     while not rospy.is_shutdown():
-        br.sendTransform(marker_tf[0], marker_tf[1], rospy.Time.now(), "/marker", "/base")
+        br.sendTransform(marker_tf[0], marker_tf[1], rospy.Time.now(), '/marker', '/base')
         rate.sleep()
