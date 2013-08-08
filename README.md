@@ -17,4 +17,6 @@ Of course, omni_im is the guts of the operation. It subscribes to the omni's joi
 
 There's also a menu handler callback- this just keeps track of whether the user has selected the omni control mode or not.
 
-Finally, there's a interactive marker feedback callback. This just keeps track of the marker's pose, storing it as a tf. The main thread constantly publishes this tf (from the omni base to the marker position).
+Finally, there's a interactive marker feedback callback. This just keeps track of the marker's pose, storing it as a tf. The main thread constantly publishes this tf.
+
+Behind the scenes (although visible if you look at the TFs), you'll see that this works by storing reference positions for the marker and stylus whenever you switch to omni control mode. While in omni control, the transform between the stylus reference and actual position is applied to the marker reference position to get the desired marker pose, which is published to the interactive marker feedback topic.
