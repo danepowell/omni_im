@@ -3,6 +3,7 @@
 import rospy
 from geometry_msgs.msg import Pose
 from sensor_msgs.msg import JointState
+from phantom_omni.msg import PhantomButtonEvent
 import tf
 from interactive_markers.interactive_marker_server import *
 from interactive_markers.menu_handler import *
@@ -16,6 +17,7 @@ server = None
 menu_handler = MenuHandler()
 feedback_client_id = '/rviz/InteractiveMarkers'
 feedback_pub = rospy.Publisher('omni_im/feedback', InteractiveMarkerFeedback)
+button_clicked = False
 
 def updateRefs():
     global marker_ref, stylus_ref
@@ -54,13 +56,17 @@ def processMarkerFeedback(feedback):
     checkFeedback(feedback.client_id)
     server.applyChanges()
 
+def omni_button_callback(button_event):
+    global button_clicked
+    button_clicked = (button_event.grey_button or button_event.white_button)
+
 # Gets called whenever omni position (joint state) changes
 # The idea here is that we publish the omni position to the omni_im feedback topic,
 # but only if 'omni_control' is currently selected.
 def omni_callback(joint_state):
-    global omni_control, feedback_client_id, feedback_pub
+    global omni_control, feedback_client_id, feedback_pub, button_clicked
 
-    if omni_control:
+    if omni_control and button_clicked:
         try:
             # Get pose corresponding to transform between base and proxy.
             p = pm.toMsg(pm.fromTf(listener.lookupTransform('/world', '/proxy', rospy.Time(0))))
@@ -97,6 +103,8 @@ if __name__=='__main__':
     stylus_ref = zero_tf
 
     rospy.Subscriber('omni1_joint_states', JointState, omni_callback)
+    rospy.Subscriber('omni1_button', PhantomButtonEvent, omni_button_callback)
+
     # create an interactive marker server on the topic namespace omni_im
     server = InteractiveMarkerServer('omni_im')
 
