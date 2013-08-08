@@ -89,28 +89,7 @@ def sendTf(transform, target, source):
     global br
     br.sendTransform(transform[0], transform[1], rospy.Time.now(), target, source)
 
-if __name__=='__main__':
-    global marker_tf, zero_tf, marker_ref, stylus_ref
-
-    rospy.init_node('omni_im')
-
-    listener = tf.TransformListener()
-    br = tf.TransformBroadcaster()
-
-    zero_tf = ((0, 0, 0), tf.transformations.quaternion_from_euler(0, 0, 0))
-    marker_tf = zero_tf
-    marker_ref = zero_tf
-    stylus_ref = zero_tf
-
-    rospy.Subscriber('omni1_joint_states', JointState, omni_callback)
-    rospy.Subscriber('omni1_button', PhantomButtonEvent, omni_button_callback)
-
-    # create an interactive marker server on the topic namespace omni_im
-    server = InteractiveMarkerServer('omni_im')
-
-    entry = menu_handler.insert("Omni control", callback=processMenuFeedback)
-    menu_handler.setCheckState(entry, MenuHandler.UNCHECKED)
-
+def makeMarker():
     # create an interactive marker for our server
     int_marker = InteractiveMarker()
     int_marker.header.frame_id = '/world'
@@ -152,8 +131,31 @@ if __name__=='__main__':
     int_marker.controls.append(menu_control)
 
     server.insert(int_marker, processMarkerFeedback)
-
     menu_handler.apply(server, int_marker.name)
+
+
+if __name__=='__main__':
+    global marker_tf, zero_tf, marker_ref, stylus_ref
+
+    rospy.init_node('omni_im')
+
+    listener = tf.TransformListener()
+    br = tf.TransformBroadcaster()
+
+    zero_tf = ((0, 0, 0), tf.transformations.quaternion_from_euler(0, 0, 0))
+    marker_tf = zero_tf
+    marker_ref = zero_tf
+    stylus_ref = zero_tf
+
+    rospy.Subscriber('omni1_joint_states', JointState, omni_callback)
+    rospy.Subscriber('omni1_button', PhantomButtonEvent, omni_button_callback)
+
+    # create an interactive marker server on the topic namespace omni_im
+    server = InteractiveMarkerServer('omni_im')
+
+    entry = menu_handler.insert("Omni control", callback=processMenuFeedback)
+    menu_handler.setCheckState(entry, MenuHandler.UNCHECKED)
+    makeMarker()
 
     # 'commit' changes and send to all clients
     server.applyChanges()
