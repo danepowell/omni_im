@@ -15,9 +15,9 @@ listener = None
 br = None
 server = None
 menu_handler = MenuHandler()
-feedback_client_id = '/rviz/InteractiveMarkers'
 feedback_pub = rospy.Publisher('omni_im/feedback', InteractiveMarkerFeedback)
 button_clicked = False
+feedback_client_id = '/rviz/InteractiveMarkers'
 
 def updateRefs():
     global marker_ref, stylus_ref
@@ -34,7 +34,7 @@ def checkFeedback(client_id):
 
 # User clicked on menu entry, i.e. 'Omni Control'
 def processMenuFeedback(feedback):
-    global omni_control, feedback_client_id
+    global omni_control
     if feedback.event_type == InteractiveMarkerFeedback.MENU_SELECT:
         handle = feedback.menu_entry_id
         state = menu_handler.getCheckState(handle)
@@ -50,7 +50,7 @@ def processMenuFeedback(feedback):
 
 # Marker moved - just save its new pose
 def processMarkerFeedback(feedback):
-    global marker_tf, feedback_client_id
+    global marker_tf
     if feedback.event_type == InteractiveMarkerFeedback.POSE_UPDATE:
         marker_tf = pm.toTf(pm.fromMsg(feedback.pose))
     checkFeedback(feedback.client_id)
@@ -64,7 +64,7 @@ def omni_button_callback(button_event):
 # The idea here is that we publish the omni position to the omni_im feedback topic,
 # but only if 'omni_control' is currently selected.
 def omni_callback(joint_state):
-    global omni_control, feedback_client_id, feedback_pub, button_clicked
+    global feedback_pub
 
     if omni_control and button_clicked:
         try:
@@ -88,6 +88,16 @@ def omni_callback(joint_state):
 def sendTf(transform, target, source):
     global br
     br.sendTransform(transform[0], transform[1], rospy.Time.now(), target, source)
+
+def makeControl(w, x, y, z, name, mode):
+    control = InteractiveMarkerControl()
+    control.orientation.w = w
+    control.orientation.x = x
+    control.orientation.y = y
+    control.orientation.z = z
+    control.name = name
+    control.interaction_mode = mode
+    return control
 
 def makeMarker():
     # create an interactive marker for our server
@@ -114,58 +124,22 @@ def makeMarker():
     control.markers.append(box_marker)
     int_marker.controls.append(control)
 
-    control = InteractiveMarkerControl()
-    control.orientation.w = 1
-    control.orientation.x = 1
-    control.orientation.y = 0
-    control.orientation.z = 0
-    control.name = "rotate_x"
-    control.interaction_mode = InteractiveMarkerControl.ROTATE_AXIS
+    control = makeControl(1, 1, 0, 0, 'rotate_x', InteractiveMarkerControl.ROTATE_AXIS)
+    int_marker.controls.append(control)
+    
+    control = makeControl(1, 1, 0, 0, 'move_x', InteractiveMarkerControl.MOVE_AXIS)
+    int_marker.controls.append(control)
+    
+    control = makeControl(1, 0, 1, 0, 'rotate_z', InteractiveMarkerControl.ROTATE_AXIS)
     int_marker.controls.append(control)
 
-    control = InteractiveMarkerControl()
-    control.orientation.w = 1
-    control.orientation.x = 1
-    control.orientation.y = 0
-    control.orientation.z = 0
-    control.name = "move_x"
-    control.interaction_mode = InteractiveMarkerControl.MOVE_AXIS
+    control = makeControl(1, 0, 1, 0, 'move_z', InteractiveMarkerControl.MOVE_AXIS)
     int_marker.controls.append(control)
 
-    control = InteractiveMarkerControl()
-    control.orientation.w = 1
-    control.orientation.x = 0
-    control.orientation.y = 1
-    control.orientation.z = 0
-    control.name = "rotate_z"
-    control.interaction_mode = InteractiveMarkerControl.ROTATE_AXIS
+    control = makeControl(1, 0, 0, 1, 'rotate_y', InteractiveMarkerControl.ROTATE_AXIS)
     int_marker.controls.append(control)
 
-    control = InteractiveMarkerControl()
-    control.orientation.w = 1
-    control.orientation.x = 0
-    control.orientation.y = 1
-    control.orientation.z = 0
-    control.name = "move_z"
-    control.interaction_mode = InteractiveMarkerControl.MOVE_AXIS
-    int_marker.controls.append(control)
-
-    control = InteractiveMarkerControl()
-    control.orientation.w = 1
-    control.orientation.x = 0
-    control.orientation.y = 0
-    control.orientation.z = 1
-    control.name = "rotate_y"
-    control.interaction_mode = InteractiveMarkerControl.ROTATE_AXIS
-    int_marker.controls.append(control)
-
-    control = InteractiveMarkerControl()
-    control.orientation.w = 1
-    control.orientation.x = 0
-    control.orientation.y = 0
-    control.orientation.z = 1
-    control.name = "move_y"
-    control.interaction_mode = InteractiveMarkerControl.MOVE_AXIS
+    control = makeControl(1, 0, 0, 1, 'move_y', InteractiveMarkerControl.MOVE_AXIS)
     int_marker.controls.append(control)
 
     menu_control = InteractiveMarkerControl()
