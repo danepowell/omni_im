@@ -83,7 +83,6 @@ if __name__=='__main__':
     rospy.Subscriber('omni1_joint_states', JointState, omni_callback)
     rospy.Subscriber('omni1_button', PhantomButtonEvent, omni_button_callback)
     rospy.Subscriber(topic_name + '/feedback', InteractiveMarkerFeedback, processMarkerFeedback)
-    rospy.loginfo(topic_name)
     rate = rospy.Rate(10.0)
     while not rospy.is_shutdown():
         sendTf(marker_tf, '/marker', '/world')
