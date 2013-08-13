@@ -5,5 +5,4 @@
     <remap from="joint_states" to="omni1_joint_states" />
   </node>
   <node name="omni_marker_1" pkg="omni_im" type="omni_im.py" required="true" output="screen" />
-  <node name="rviz" pkg="rviz" type="rviz" args="-d $(find omni_im)/cfg/omni_im_clean.rviz" required="true" />
 </launch>
