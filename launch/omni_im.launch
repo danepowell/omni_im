@@ -1,8 +1,4 @@
 <launch>
-  <node name="omni1" pkg="phantom_omni" type="omni" output="screen" />
-  <param name="robot_description" command="cat $(find omni_description)/urdf/omni.urdf" />
-  <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher">
-    <remap from="joint_states" to="omni1_joint_states" />
-  </node>
+  <include file="$(find phantom_omni)/launch/omni_headless.launch" />
   <node name="omni_im_1" pkg="omni_im" type="omni_im.py" required="true" output="screen" />
 </launch>
