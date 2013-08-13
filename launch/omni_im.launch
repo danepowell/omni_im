@@ -4,5 +4,5 @@
   <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher">
     <remap from="joint_states" to="omni1_joint_states" />
   </node>
-  <node name="omni_marker_1" pkg="omni_im" type="omni_im.py" required="true" output="screen" />
+  <node name="omni_im_1" pkg="omni_im" type="omni_im.py" required="true" output="screen" />
 </launch>
