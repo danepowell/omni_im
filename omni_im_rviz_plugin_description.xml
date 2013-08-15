@@ -1,0 +1,8 @@
+<library path="lib/libomni_im_rviz">
+  <class name="rviz/OmniIMDisplay" type="rviz::OmniIMDisplay" base_class_type="rviz::Display">
+    <description>
+      A plugin for Omni-based interactive marker control.
+    </description>
+  </class>
+</library>
+

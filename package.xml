@@ -13,9 +13,18 @@
   <author>Dane Powell</author>
 
   <buildtool_depend>catkin</buildtool_depend>
-  
+
+  <build_depend>pluginlib</build_depend>
+  <build_depend>rviz</build_depend>
+
   <run_depend>interactive_markers</run_depend>
   <run_depend>visualization_msgs</run_depend>
   <run_depend>tf</run_depend>
+  <run_depend>pluginlib</run_depend>
+  <run_depend>rviz</run_depend>
+
+  <export>
+    <rviz plugin="${prefix}/omni_im_rviz_plugin_description.xml" />
+  </export>
 
 </package>
