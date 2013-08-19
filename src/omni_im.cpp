@@ -1,14 +1,9 @@
 #include "omni_im.h"
 #include <boost/shared_ptr.hpp>
 #include "rviz/default_plugin/interactive_markers/interactive_marker_control.h"
-#include <OGRE/OgreSceneQuery.h>
 
 namespace rviz
 {
-
-class MySceneQueryListener : public Ogre::SceneQueryListener
-{
-};
 
 OmniIMDisplay::OmniIMDisplay()
 {

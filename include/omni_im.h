@@ -9,8 +9,6 @@
 namespace rviz
 {
 
-class MySceneQueryListener;
-
 class OmniIMDisplay: public Display
 {
 Q_OBJECT
