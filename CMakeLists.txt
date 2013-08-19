@@ -37,7 +37,7 @@ add_library(omni_im_rviz ${SOURCE_FILES} ${MOC_SOURCES})
 target_link_libraries(omni_im_rviz ${catkin_LIBRARIES} ${QT_LIBRARIES})
 
 install(TARGETS omni_im_rviz LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION})
-install(FILES omni_im_rviz_plugin_description.xml DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
+install(FILES plugin_description.xml DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
 install(DIRECTORY include/ DESTINATION include)
 
 install(PROGRAMS

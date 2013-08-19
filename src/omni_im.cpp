@@ -2,33 +2,30 @@
 #include <boost/shared_ptr.hpp>
 #include "rviz/default_plugin/interactive_markers/interactive_marker_control.h"
 
-namespace rviz
+namespace omni_im
 {
 
-OmniIMDisplay::OmniIMDisplay()
+OmniIMTool::OmniIMTool()
 {
 }
 
-OmniIMDisplay::~OmniIMDisplay()
+OmniIMTool::~OmniIMTool()
 {
 }
 
-void OmniIMDisplay::onInitialize()
+void OmniIMTool::onInitialize()
 {
-  //  boost::shared_ptr<InteractiveMarkerControl> control;
-  //InteractiveObjectWPtr ptr;
-  //getActiveControl(ptr, control);
 }
 
-void OmniIMDisplay::getActiveControl(InteractiveObjectWPtr& ptr, boost::shared_ptr<InteractiveMarkerControl>& control)
+void OmniIMTool::activate()
 {
-  //  ptr = grabbed_object_;
-  //if(!ptr.expired())
-  //{
-    //control = boost::dynamic_pointer_cast<InteractiveMarkerControl>(ptr.lock());
-  //}
 }
+
+void OmniIMTool::deactivate()
+{
+}
+
 }
 
 #include <pluginlib/class_list_macros.h>
-PLUGINLIB_EXPORT_CLASS(rviz::OmniIMDisplay, rviz::Display)
+PLUGINLIB_EXPORT_CLASS(omni_im::OmniIMTool, rviz::InteractionTool)
