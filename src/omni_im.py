@@ -7,6 +7,7 @@ from phantom_omni.msg import PhantomButtonEvent
 import tf
 from interactive_markers.interactive_marker_server import *
 import tf_conversions.posemath as pm
+import interaction_cursor_msgs
 
 marker_name = ''
 topic_name = rospy.get_param('~/omni_im/topic_name', '')
@@ -14,7 +15,7 @@ topic_name = rospy.get_param('~/omni_im/topic_name', '')
 # todo: get rid of all these globals- use classes instead
 listener = None
 br = None
-feedback_pub = rospy.Publisher(topic_name + '/feedback', InteractiveMarkerFeedback)
+update_pub = rospy.Publisher('/interaction_cursor/update', InteractiveMarkerFeedback)
 button_clicked = False
 feedback_client_id = '/rviz/InteractiveMarkers'
 
@@ -25,10 +26,6 @@ def updateRefs():
         marker_ref = listener.lookupTransform('/world', '/marker', rospy.Time(0))
     except:
         pass
-
-def checkFeedback(client_id):
-    if client_id != feedback_client_id:
-        rospy.logwarn("Different client_id! This could cause feedback to be ignored. i.e., break EVERYTHING.")
 
 # Marker moved - just save its new pose
 def processMarkerFeedback(feedback):
@@ -43,21 +40,19 @@ def omni_button_callback(button_event):
 # Gets called whenever omni position (joint state) changes
 # The idea here is that we publish the omni position to the omni_im feedback topic,
 def omni_callback(joint_state):
-    global feedback_pub
+    global update_pub
     if button_clicked:
         try:
             # Get pose corresponding to transform between base and proxy.
             p = pm.toMsg(pm.fromTf(listener.lookupTransform('/world', '/proxy', rospy.Time(0))))
 
-            # Construct feedback message.
-            feedback = InteractiveMarkerFeedback()
-            feedback.pose = p
-            feedback.marker_name = marker_name
-            feedback.event_type = feedback.POSE_UPDATE
-            feedback.client_id = feedback_client_id
+            update = InteractionCursorUpdate()
+            update.pose = p
+            update.button_state = update.KEEP_ALIVE
+            update.key_event = update.NONE
 
             # Publish feedback.
-            feedback_pub.publish(feedback)
+            update_pub.publish(update)
         except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException):
             rospy.logerr("Couldn't look up transform. These things happen...")
     else:
