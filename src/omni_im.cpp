@@ -28,4 +28,5 @@ void OmniIMTool::deactivate()
 }
 
 #include <pluginlib/class_list_macros.h>
+PLUGINLIB_EXPORT_CLASS(omni_im::OmniIMTool, rviz::Tool)
 PLUGINLIB_EXPORT_CLASS(omni_im::OmniIMTool, rviz::InteractionTool)
