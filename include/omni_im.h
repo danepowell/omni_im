@@ -2,8 +2,10 @@
 #define RVIZ_OMNI_IM_TOOL_H
 
 #include "rviz/tool.h"
+#include "rviz/render_panel.h"
 #include "rviz/default_plugin/tools/interaction_tool.h"
 #include <QObject>
+
 #include <boost/shared_ptr.hpp>
 #include "rviz/default_plugin/interactive_markers/interactive_marker_control.h"
 
@@ -20,6 +22,7 @@ public:
  virtual void onInitialize();
  virtual void activate();
  virtual void deactivate();
+ virtual int processKeyEvent( QKeyEvent* event, rviz::RenderPanel* panel );
 
 };
 
