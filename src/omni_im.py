@@ -32,7 +32,7 @@ def updateRefs():
 def processMarkerFeedback(feedback):
     global marker_tf, marker_name
     marker_name = feedback.marker_name
-    marker_tf = pm.toTf(pm.fromMsg(feedback.pose))
+    marker_tf = ((feedback.mouse_point.x, feedback.mouse_point.y, feedback.mouse_point.z), tf.transformations.quaternion_from_euler(0, 0, 0))
 
 def omni_button_callback(button_event):
     global button_clicked
@@ -43,13 +43,10 @@ def omni_button_callback(button_event):
 def omni_callback(joint_state):
     global update_pub, last_button_state
     try:
-        # Get pose corresponding to transform between base and proxy.
-        p = pm.toMsg(pm.fromTf(listener.lookupTransform('/world', '/stylus', rospy.Time(0))))
         update = InteractionCursorUpdate()
         update.pose.header = std_msgs.msg.Header()
         update.pose.header.stamp = rospy.Time.now()
-        update.pose.header.frame_id = 'world'
-        update.pose.pose = p
+        update.pose.header.frame_id = 'marker_ref'
         if button_clicked and last_button_state == update.GRAB:
             update.button_state = update.KEEP_ALIVE
         elif button_clicked and last_button_state == update.KEEP_ALIVE:
@@ -60,7 +57,12 @@ def omni_callback(joint_state):
             update.button_state = update.RELEASE
         else:
             update.button_state = update.NONE
+            updateRefs()
         update.key_event = 0
+
+        # Get pose corresponding to transform between base and proxy.
+        p = pm.toMsg(pm.fromTf(listener.lookupTransform('/stylus_ref', '/stylus', rospy.Time(0))))
+        update.pose.pose = p
 
         last_button_state = update.button_state
 
