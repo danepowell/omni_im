@@ -12,3 +12,6 @@ Behind the scenes (although visible if you look at the TFs), you'll see that thi
 To try it out, download omni_im_demo, and simply:
 roslaunch omni_im_demo omni_im_demo.launch
 
+There are a couple of problems with this that I'm trying to address in feature branches:
+1) Latency. There's a lot of lag between input from Phantom and update to the interactive marker. I think this is because we don't have control over when the server applies updates.
+2) Constraints. This completely 'forges' updates to the marker, bypassing the actual marker controls, meaning that it doesn't obey constraints imposed on the marker (such as to only translate or rotate in one dimension.)
