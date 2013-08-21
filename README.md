@@ -9,4 +9,3 @@ roslaunch omni_im_demo omni_im_demo
 
 Then add the InteractionCursor display to rviz.
 
-Work is also in progress on a separate interaction tool to be used instead of interaction_cursor_rviz.
