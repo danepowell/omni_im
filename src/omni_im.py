@@ -7,15 +7,16 @@ from phantom_omni.msg import PhantomButtonEvent
 import tf
 from interactive_markers.interactive_marker_server import *
 import tf_conversions.posemath as pm
-import interaction_cursor_msgs
+from interaction_cursor_msgs.msg import InteractionCursorUpdate
 
 marker_name = ''
 topic_name = rospy.get_param('~/omni_im/topic_name', '')
+last_button_state = 0
 
 # todo: get rid of all these globals- use classes instead
 listener = None
 br = None
-update_pub = rospy.Publisher('/interaction_cursor/update', InteractiveMarkerFeedback)
+update_pub = rospy.Publisher('/interaction_cursor/update', InteractionCursorUpdate)
 button_clicked = False
 feedback_client_id = '/rviz/InteractiveMarkers'
 
@@ -40,23 +41,33 @@ def omni_button_callback(button_event):
 # Gets called whenever omni position (joint state) changes
 # The idea here is that we publish the omni position to the omni_im feedback topic,
 def omni_callback(joint_state):
-    global update_pub
-    if button_clicked:
-        try:
-            # Get pose corresponding to transform between base and proxy.
-            p = pm.toMsg(pm.fromTf(listener.lookupTransform('/world', '/proxy', rospy.Time(0))))
-
-            update = InteractionCursorUpdate()
-            update.pose = p
+    global update_pub, last_button_state
+    try:
+        # Get pose corresponding to transform between base and proxy.
+        p = pm.toMsg(pm.fromTf(listener.lookupTransform('/world', '/stylus', rospy.Time(0))))
+        update = InteractionCursorUpdate()
+        update.pose.header = std_msgs.msg.Header()
+        update.pose.header.stamp = rospy.Time.now()
+        update.pose.header.frame_id = 'world'
+        update.pose.pose = p
+        if button_clicked and last_button_state == update.GRAB:
             update.button_state = update.KEEP_ALIVE
-            update.key_event = update.NONE
+        elif button_clicked and last_button_state == update.KEEP_ALIVE:
+            update.button_state = update.KEEP_ALIVE
+        elif button_clicked:
+            update.button_state = update.GRAB
+        elif last_button_state == update.KEEP_ALIVE:
+            update.button_state = update.RELEASE
+        else:
+            update.button_state = update.NONE
+        update.key_event = 0
 
-            # Publish feedback.
-            update_pub.publish(update)
-        except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException):
-            rospy.logerr("Couldn't look up transform. These things happen...")
-    else:
-        updateRefs()
+        last_button_state = update.button_state
+
+        # Publish feedback.
+        update_pub.publish(update)
+    except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException):
+        rospy.logerr("Couldn't look up transform. These things happen...")
 
 def sendTf(transform, target, source):
     global br
