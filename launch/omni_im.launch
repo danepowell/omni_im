@@ -1,4 +1,4 @@
 <launch>
   <include file="$(find phantom_omni)/launch/omni_headless.launch" />
-  <node name="omni_im_1" pkg="omni_im" type="omni_im.py" required="true" output="screen" />
+  <node name="omni_marker_1" pkg="omni_im" type="omni_im.py" required="true" output="screen" />
 </launch>
