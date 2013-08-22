@@ -11,6 +11,7 @@ from interaction_cursor_msgs.msg import InteractionCursorUpdate
 
 marker_name = ''
 topic_name = rospy.get_param('~/omni_im/topic_name', '')
+fixed_frame = rospy.get_param('~/omni_im/fixed_frame', '/world')
 last_button_state = 0
 
 # todo: get rid of all these globals- use classes instead
@@ -23,8 +24,8 @@ feedback_client_id = '/rviz/InteractiveMarkers'
 def updateRefs():
     global marker_ref, stylus_ref
     try:
-        stylus_ref = listener.lookupTransform('/world', '/stylus', rospy.Time(0))
-        marker_ref = listener.lookupTransform('/world', '/marker', rospy.Time(0))
+        stylus_ref = listener.lookupTransform(fixed_frame, '/stylus', rospy.Time(0))
+        marker_ref = listener.lookupTransform(fixed_frame, '/marker', rospy.Time(0))
     except:
         pass
 
@@ -93,10 +94,10 @@ if __name__=='__main__':
     rospy.Subscriber(topic_name + '/feedback', InteractiveMarkerFeedback, processMarkerFeedback)
     rate = rospy.Rate(10.0)
     while not rospy.is_shutdown():
-        sendTf(marker_tf, '/marker', '/world')
-        sendTf(zero_tf, '/base', '/world')
-        sendTf(marker_ref, '/marker_ref', '/world')
-        sendTf(stylus_ref, '/stylus_ref', '/world')
+        sendTf(marker_tf, '/marker', fixed_frame)
+        sendTf(zero_tf, '/base', fixed_frame)
+        sendTf(marker_ref, '/marker_ref', fixed_frame)
+        sendTf(stylus_ref, '/stylus_ref', fixed_frame)
         
         try:
             rel_tf = listener.lookupTransform('/stylus_ref', '/stylus', rospy.Time(0))
