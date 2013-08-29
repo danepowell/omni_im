@@ -33,7 +33,7 @@ def updateRefs():
 def processMarkerFeedback(feedback):
     global marker_tf, marker_name
     marker_name = feedback.marker_name
-    marker_tf = ((feedback.mouse_point.x, feedback.mouse_point.y, feedback.mouse_point.z), tf.transformations.quaternion_from_euler(0, 0, 0))
+    marker_tf = ((feedback.pose.position.x, feedback.pose.position.y, feedback.pose.position.z), tf.transformations.quaternion_from_euler(0, 0, 0))
 
 def omni_button_callback(button_event):
     global button_clicked
@@ -43,6 +43,17 @@ def omni_button_callback(button_event):
 # The idea here is that we publish the omni position to the omni_im feedback topic,
 def omni_callback(joint_state):
     global update_pub, last_button_state
+    sendTf(marker_tf, '/marker', fixed_frame)
+    sendTf(zero_tf, '/base', fixed_frame)
+    sendTf(marker_ref, '/marker_ref', fixed_frame)
+    sendTf(stylus_ref, '/stylus_ref', fixed_frame)
+        
+    try:
+        rel_tf = listener.lookupTransform('/stylus_ref', '/stylus', rospy.Time(0))
+        sendTf(rel_tf, '/proxy', '/marker_ref')
+    except:
+        rospy.logerr("Couldn't look up second transform")
+
     try:
         update = InteractionCursorUpdate()
         update.pose.header = std_msgs.msg.Header()
@@ -61,8 +72,12 @@ def omni_callback(joint_state):
             updateRefs()
         update.key_event = 0
 
-        # Get pose corresponding to transform between base and proxy.
-        p = pm.toMsg(pm.fromTf(listener.lookupTransform('/stylus_ref', '/stylus', rospy.Time(0))))
+        if button_clicked:
+            # Get pose corresponding to transform between base and proxy.
+            p = pm.toMsg(pm.fromTf(listener.lookupTransform('/stylus_ref', '/stylus', rospy.Time(0))))
+        else:
+            p = pm.toMsg(pm.fromTf(zero_tf))
+
         update.pose.pose = p
 
         last_button_state = update.button_state
@@ -71,6 +86,7 @@ def omni_callback(joint_state):
         update_pub.publish(update)
     except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException):
         rospy.logerr("Couldn't look up transform. These things happen...")
+
 
 def sendTf(transform, target, source):
     global br
@@ -92,16 +108,5 @@ if __name__=='__main__':
     rospy.Subscriber('omni1_joint_states', JointState, omni_callback)
     rospy.Subscriber('omni1_button', PhantomButtonEvent, omni_button_callback)
     rospy.Subscriber(topic_name + '/feedback', InteractiveMarkerFeedback, processMarkerFeedback)
-    rate = rospy.Rate(10.0)
-    while not rospy.is_shutdown():
-        sendTf(marker_tf, '/marker', fixed_frame)
-        sendTf(zero_tf, '/base', fixed_frame)
-        sendTf(marker_ref, '/marker_ref', fixed_frame)
-        sendTf(stylus_ref, '/stylus_ref', fixed_frame)
-        
-        try:
-            rel_tf = listener.lookupTransform('/stylus_ref', '/stylus', rospy.Time(0))
-            sendTf(rel_tf, '/proxy', '/marker_ref')
-        except:
-            continue
-        rate.sleep()
+    
+    rospy.spin()
