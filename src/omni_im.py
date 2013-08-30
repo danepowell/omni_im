@@ -77,6 +77,12 @@ def omni_callback(joint_state):
             p = pm.toMsg(pm.fromTf(listener.lookupTransform('/stylus_ref', '/stylus', rospy.Time(0))))
         else:
             p = pm.toMsg(pm.fromTf(zero_tf))
+        
+        # Simply scale this up a bit to increase the workspace.
+        workspace = 4
+        p.position.x = p.position.x * workspace
+        p.position.y = p.position.y * workspace
+        p.position.z = p.position.z * workspace
 
         update.pose.pose = p
 
