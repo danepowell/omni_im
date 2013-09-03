@@ -12,6 +12,7 @@ from interaction_cursor_msgs.msg import InteractionCursorUpdate
 marker_name = ''
 topic_name = rospy.get_param('~/omni_im/topic_name', '')
 fixed_frame = rospy.get_param('~/omni_im/fixed_frame', '/world')
+rel_control = rospy.get_param('~/omni_im/rel_control', 'true')
 last_button_state = 0
 
 # todo: get rid of all these globals- use classes instead
@@ -33,7 +34,10 @@ def updateRefs():
 def processMarkerFeedback(feedback):
     global marker_tf, marker_name
     marker_name = feedback.marker_name
-    marker_tf = ((feedback.pose.position.x, feedback.pose.position.y, feedback.pose.position.z), tf.transformations.quaternion_from_euler(0, 0, 0))
+    if rel_control:
+        marker_tf = ((feedback.pose.position.x, feedback.pose.position.y, feedback.pose.position.z), (feedback.pose.orientation.x, feedback.pose.orientation.y, feedback.pose.orientation.z, feedback.pose.orientation.w))
+    else:
+        marker_tf = ((feedback.pose.position.x, feedback.pose.position.y, feedback.pose.position.z), tf.transformations.quaternion_from_euler(0, 0, 0))
 
 def omni_button_callback(button_event):
     global button_clicked
