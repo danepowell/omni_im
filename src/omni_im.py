@@ -35,9 +35,9 @@ def processMarkerFeedback(feedback):
     global marker_tf, marker_name
     marker_name = feedback.marker_name
     if rel_control:
-        marker_tf = ((feedback.pose.position.x, feedback.pose.position.y, feedback.pose.position.z), (feedback.pose.orientation.x, feedback.pose.orientation.y, feedback.pose.orientation.z, feedback.pose.orientation.w))
+        marker_tf = pm.toTf(pm.fromMsg(feedback.pose))
     else:
-        marker_tf = ((feedback.pose.position.x, feedback.pose.position.y, feedback.pose.position.z), tf.transformations.quaternion_from_euler(0, 0, 0))
+        marker_tf = (feedback.pose.position, tf.transformations.quaternion_from_euler(0, 0, 0))
 
 def omni_button_callback(button_event):
     global button_clicked
