@@ -12,7 +12,7 @@ from interaction_cursor_msgs.msg import InteractionCursorUpdate
 marker_name = ''
 topic_name = rospy.get_param('~/omni_im/topic_name', '')
 fixed_frame = rospy.get_param('~/omni_im/fixed_frame', '/world')
-rel_control = rospy.get_param('~/omni_im/rel_control', 'true')
+control_frame = rospy.get_param('~/omni_im/control_frame', '/world')
 last_button_state = 0
 
 # todo: get rid of all these globals- use classes instead
@@ -26,18 +26,17 @@ def updateRefs():
     global marker_ref, stylus_ref
     try:
         stylus_ref = listener.lookupTransform(fixed_frame, '/stylus', rospy.Time(0))
-        marker_ref = listener.lookupTransform(fixed_frame, '/marker', rospy.Time(0))
-    except:
-        pass
+        (control_pos, control_rot) = listener.lookupTransform('/marker', control_frame, rospy.Time(0))
+        (marker_pos, marker_rot) = listener.lookupTransform(fixed_frame, '/marker', rospy.Time(0))
+        marker_ref = (marker_pos, tf.transformations.quaternion_multiply(control_rot, marker_rot))
+    except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException):
+        rospy.logerr("Couldn't look up transform. These things happen...")
 
 # Marker moved - just save its new pose
 def processMarkerFeedback(feedback):
     global marker_tf, marker_name
     marker_name = feedback.marker_name
-    if rel_control:
-        marker_tf = pm.toTf(pm.fromMsg(feedback.pose))
-    else:
-        marker_tf = (feedback.pose.position, tf.transformations.quaternion_from_euler(0, 0, 0))
+    marker_tf = pm.toTf(pm.fromMsg(feedback.pose))
 
 def omni_button_callback(button_event):
     global button_clicked
