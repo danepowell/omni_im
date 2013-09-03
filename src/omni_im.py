@@ -54,8 +54,8 @@ def omni_callback(joint_state):
     try:
         rel_tf = listener.lookupTransform('/stylus_ref', '/stylus', rospy.Time(0))
         sendTf(rel_tf, '/proxy', '/marker_ref')
-    except:
-        rospy.logerr("Couldn't look up second transform")
+    except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException):
+        rospy.logerr("Couldn't look up transform. These things happen...")
 
     try:
         update = InteractionCursorUpdate()
