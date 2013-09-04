@@ -8,11 +8,13 @@ import tf
 from interactive_markers.interactive_marker_server import *
 import tf_conversions.posemath as pm
 from interaction_cursor_msgs.msg import InteractionCursorUpdate
+import numpy
 
 marker_name = ''
 topic_name = rospy.get_param('~/omni_im/topic_name', '')
 fixed_frame = rospy.get_param('~/omni_im/fixed_frame', '/world')
 control_frame = rospy.get_param('~/omni_im/control_frame', '/world')
+control_rot = rospy.get_param('~/omni_im/control_rot', (0, 0, 3.14159))
 last_button_state = 0
 
 # todo: get rid of all these globals- use classes instead
@@ -70,8 +72,12 @@ def omni_callback(joint_state):
         update.key_event = 0
 
         if button_clicked:
-            # Get pose corresponding to transform between base and proxy.
-            p = pm.toMsg(pm.fromTf(listener.lookupTransform('/stylus_ref', '/stylus', rospy.Time(0))))
+            # Get pose corresponding to transform between stylus reference and current position.
+            stylus_tf = listener.lookupTransform('/stylus_ref', '/stylus', rospy.Time(0))
+            control_tf = ((0, 0, 0), tf.transformations.quaternion_from_euler(*control_rot))
+            stylus_matrix = pm.toMatrix(pm.fromTf(stylus_tf))
+            control_matrix = pm.toMatrix(pm.fromTf(control_tf))
+            p = pm.toMsg(pm.fromMatrix(numpy.dot(control_matrix, stylus_matrix)))
         else:
             p = pm.toMsg(pm.fromTf(zero_tf))
         
