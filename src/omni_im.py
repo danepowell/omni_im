@@ -71,15 +71,15 @@ def omni_callback(joint_state):
             updateRefs()
         update.key_event = 0
 
+        control_tf = ((0, 0, 0), tf.transformations.quaternion_from_euler(*control_rot))
         if button_clicked:
             # Get pose corresponding to transform between stylus reference and current position.
             stylus_tf = listener.lookupTransform('/stylus_ref', '/stylus', rospy.Time(0))
-            control_tf = ((0, 0, 0), tf.transformations.quaternion_from_euler(*control_rot))
             stylus_matrix = pm.toMatrix(pm.fromTf(stylus_tf))
             control_matrix = pm.toMatrix(pm.fromTf(control_tf))
             p = pm.toMsg(pm.fromMatrix(numpy.dot(control_matrix, stylus_matrix)))
         else:
-            p = pm.toMsg(pm.fromTf(zero_tf))
+            p = pm.toMsg(pm.fromTf(control_tf))
         
         # Simply scale this up a bit to increase the workspace.
         workspace = 4
