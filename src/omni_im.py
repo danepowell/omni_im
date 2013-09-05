@@ -14,7 +14,7 @@ marker_name = ''
 topic_name = rospy.get_param('~/omni_im/topic_name', '')
 fixed_frame = rospy.get_param('~/omni_im/fixed_frame', '/world')
 control_frame = rospy.get_param('~/omni_im/control_frame', '/world')
-control_rot = rospy.get_param('~/omni_im/control_rot', (0, 0, 3.14159))
+control_offset = rospy.get_param('~/omni_im/control_offset', 3.14159)
 # TODO: get rid of marker_pos - can get the true marker position from topic_name/update
 marker_offset = rospy.get_param('~/omni_im/marker_offset', 0)
 last_button_state = 0
@@ -74,7 +74,7 @@ def omni_callback(joint_state):
             updateRefs()
         update.key_event = 0
 
-        control_tf = ((0, 0, 0), tf.transformations.quaternion_from_euler(*control_rot))
+        control_tf = ((0, 0, 0), tf.transformations.quaternion_from_euler(0, 0, control_offset))
         if button_clicked:
             # Get pose corresponding to transform between stylus reference and current position.
             stylus_tf = listener.lookupTransform('/stylus_ref', '/stylus', rospy.Time(0))
