@@ -15,9 +15,11 @@ topic_name = rospy.get_param('~/omni_im/topic_name', '')
 fixed_frame = rospy.get_param('~/omni_im/fixed_frame', '/world')
 control_frame = rospy.get_param('~/omni_im/control_frame', '/world')
 control_rot = rospy.get_param('~/omni_im/control_rot', (0, 0, 3.14159))
+# TODO: get rid of marker_pos - can get the true marker position from topic_name/update
+marker_offset = rospy.get_param('~/omni_im/marker_offset', 0)
 last_button_state = 0
 
-# todo: get rid of all these globals- use classes instead
+# TODO: get rid of all these globals- use classes instead
 listener = None
 br = None
 update_pub = rospy.Publisher('/interaction_cursor/update', InteractionCursorUpdate)
@@ -38,7 +40,8 @@ def updateRefs():
 def processMarkerFeedback(feedback):
     global marker_tf, marker_name
     marker_name = feedback.marker_name
-    marker_tf = pm.toTf(pm.fromMsg(feedback.pose))
+    marker_offset_tf = ((0, 0, marker_offset), tf.transformations.quaternion_from_euler(0, 0, 0))
+    marker_tf = pm.toTf(pm.fromMatrix(numpy.dot(pm.toMatrix(pm.fromMsg(feedback.pose)), pm.toMatrix(pm.fromTf(marker_offset_tf)))))
 
 def omni_button_callback(button_event):
     global button_clicked
