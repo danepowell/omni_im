@@ -42,6 +42,8 @@ def processMarkerFeedback(feedback):
     marker_name = feedback.marker_name
     marker_offset_tf = ((0, 0, marker_offset), tf.transformations.quaternion_from_euler(0, 0, 0))
     marker_tf = pm.toTf(pm.fromMatrix(numpy.dot(pm.toMatrix(pm.fromMsg(feedback.pose)), pm.toMatrix(pm.fromTf(marker_offset_tf)))))
+    if feedback.menu_entry_id:
+        marker_tf = zero_tf
 
 def omni_button_callback(button_event):
     global button_clicked
